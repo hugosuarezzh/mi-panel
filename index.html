@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mi Panel</title>
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg">
+<meta name="theme-color" content="#12141a">
+<style>
+:root{--bg:#12141a;--p:#1c1f28;--b:#2b2f3b;--t:#e8eaf0;--m:#8b90a0;--a:#6ee7b7}
+@media(prefers-color-scheme:light){:root{--bg:#f3f4f7;--p:#fff;--b:#d9dce4;--t:#1a1d26;--m:#666b7a;--a:#0f9d73}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:15px system-ui,sans-serif}
+.w{max-width:900px;margin:0 auto;padding:16px}
+#q{width:100%;padding:14px 16px;font-size:17px;border-radius:12px;border:1px solid var(--b);background:var(--p);color:var(--t)}
+#qr{color:var(--a);padding:6px 4px;min-height:28px;font-weight:600}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 14px}
+nav button,.btn{background:var(--p);color:var(--t);border:1px solid var(--b);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:14px}
+nav button.on,.btn.pri{background:var(--a);color:#0b1210;border-color:var(--a);font-weight:600}
+section{display:none;background:var(--p);border:1px solid var(--b);border-radius:12px;padding:16px}
+section.on{display:block}
+textarea,input,select{background:var(--bg);color:var(--t);border:1px solid var(--b);border-radius:8px;padding:8px;font:inherit;max-width:100%}
+textarea{width:100%;min-height:110px;resize:vertical}
+h3{margin:18px 0 8px;font-size:15px;color:var(--m);text-transform:uppercase;letter-spacing:.05em}h3:first-child{margin-top:0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.item{border:1px solid var(--b);border-radius:8px;padding:10px;margin:8px 0;display:flex;gap:10px;justify-content:space-between}
+.item pre{margin:0;white-space:pre-wrap;word-break:break-word;font:inherit;flex:1}
+small{color:var(--m)}.big{font-size:56px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums}
+.links{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.links a{display:block;padding:14px;border:1px solid var(--b);border-radius:10px;color:var(--t);text-decoration:none;text-align:center}
+.links a:hover{border-color:var(--a)}
+</style></head><body><div class="w">
+<input id="q" placeholder="🔍 ¿Qué quieres hacer? (nota, calculadora, texto, pomodoro, o una operación: 1250*0.16)" autofocus>
+<div id="qr"></div>
+<nav id="nav"></nav>
+
+<section id="notas"><h3>Apuntes rápidos</h3>
+<textarea id="nt" placeholder="Escribe aquí… (Ctrl+Enter para guardar)"></textarea>
+<div class="row"><button class="btn pri" id="ns">Guardar nota</button><input id="nf" placeholder="Buscar en notas"><span id="nc"></span></div>
+<div id="nl"></div></section>
+
+<section id="herr"><h3>Calculadora</h3>
+<div class="row"><input id="ci" placeholder="1250*0.16 + 10" size="28"><b id="co"></b></div>
+<h3>Porcentajes</h3>
+<div class="row"><input id="p1" type="number" placeholder="%" style="width:90px"> de <input id="p2" type="number" placeholder="cantidad" style="width:120px"> = <b id="po"></b></div>
+<h3>Regla de tres</h3>
+<div class="row"><input id="r1" type="number" placeholder="A" style="width:80px"> es a <input id="r2" type="number" placeholder="B" style="width:80px"> como <input id="r3" type="number" placeholder="C" style="width:80px"> es a <b id="ro">?</b></div>
+<h3>Herramientas de texto</h3>
+<textarea id="tx" placeholder="Pega tu texto…"></textarea>
+<div class="row"><button class="btn" data-t="up">MAYÚSCULAS</button><button class="btn" data-t="lo">minúsculas</button><button class="btn" data-t="ti">Título</button><button class="btn" data-t="sp">Quitar espacios dobles</button><button class="btn" data-t="nl">Quitar saltos de línea</button><button class="btn" data-t="cp">Copiar</button></div>
+<small id="tc"></small>
+<h3>Generador de contraseñas</h3>
+<div class="row"><input id="pl" type="number" value="16" min="6" max="64" style="width:80px"><button class="btn" id="pg">Generar</button><code id="pw"></code></div>
+</section>
+
+<section id="links"><h3>Mis sitios</h3><div class="links" id="ll"></div>
+<h3>Agregar</h3><div class="row"><input id="ln" placeholder="Nombre"><input id="lu" placeholder="https://…" size="28"><button class="btn" id="la">Agregar</button></div>
+<small>Click derecho sobre un sitio para eliminarlo.</small></section>
+
+<section id="pomo"><div class="big" id="pt">25:00</div>
+<div class="row" style="justify-content:center"><input id="pk" placeholder="Tarea actual" size="26"><input id="pm" type="number" value="25" min="1" style="width:70px"> min</div>
+<div class="row" style="justify-content:center"><button class="btn pri" id="ps">▶ Iniciar</button><button class="btn" id="pp">⏸ Pausar</button><button class="btn" id="pf">✓ Terminar</button></div>
+<h3>Historial</h3><div id="ph"></div></section>
+
+<section id="datos"><h3>Respaldo</h3>
+<p>Tus datos viven en este navegador. Exporta un respaldo de vez en cuando.</p>
+<div class="row"><button class="btn pri" id="ex">Exportar JSON</button><input type="file" id="im" accept=".json"></div></section>
+</div>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const K='panel.';
+const get=(k,d)=>{try{return JSON.parse(localStorage.getItem(K+k))??d}catch{return d}};
+const set=(k,v)=>{try{localStorage.setItem(K+k,JSON.stringify(v))}catch{}};
+const tabs={notas:'📝 Notas',herr:'🧮 Herramientas',links:'🌐 Accesos',pomo:'⏱️ Pomodoro',datos:'💾 Respaldo'};
+for(const k in tabs){const b=document.createElement('button');b.textContent=tabs[k];b.dataset.k=k;b.onclick=()=>show(k);$('#nav').append(b)}
+function show(k){$$('section').forEach(s=>s.classList.toggle('on',s.id===k));$$('nav button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));set('tab',k)}
+show(get('tab','notas'));
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const calc=e=>{e=e.replace(/[x×]/g,'*').replace(/÷/g,'/').replace(/\^/g,'**').replace(/,/g,'.');
+ if(!/^[\d+\-*/().\s%]+$/.test(e)||!/\d/.test(e)||!/[+\-*/%]/.test(e))return null;
+ try{const r=Function('"use strict";return('+e.replace(/(\d+(?:\.\d+)?)%/g,'($1/100)')+')')();return Number.isFinite(r)?+r.toFixed(10):null}catch{return null}};
+
+// Notas
+let notes=get('notes',[]);
+function renderNotes(){const f=$('#nf').value.toLowerCase();
+ const l=notes.filter(n=>n.t.toLowerCase().includes(f));
+ $('#nc').innerHTML='<small>'+l.length+' nota(s)</small>';
+ $('#nl').innerHTML=l.map(n=>`<div class="item"><pre>${esc(n.t)}</pre><div><small>${new Date(n.d).toLocaleString()}</small><br><button class="btn" data-c="${n.id}">Copiar</button> <button class="btn" data-d="${n.id}">✕</button></div></div>`).join('')}
+function saveNote(){const t=$('#nt').value.trim();if(!t)return;notes.unshift({id:Date.now(),t,d:Date.now()});set('notes',notes);$('#nt').value='';renderNotes()}
+$('#ns').onclick=saveNote;$('#nt').onkeydown=e=>{if(e.ctrlKey&&e.key==='Enter')saveNote()};$('#nf').oninput=renderNotes;
+$('#nl').onclick=e=>{const d=e.target.dataset.d,c=e.target.dataset.c;
+ if(d){notes=notes.filter(n=>n.id!=d);set('notes',notes);renderNotes()}
+ if(c)navigator.clipboard.writeText(notes.find(n=>n.id==c).t)};
+renderNotes();
+
+// Herramientas
+$('#ci').oninput=()=>{const r=calc($('#ci').value);$('#co').textContent=r===null?'':'= '+r};
+const pc=()=>{const a=+$('#p1').value,b=+$('#p2').value;$('#po').textContent=$('#p1').value&&$('#p2').value?+(a*b/100).toFixed(4):''};
+$('#p1').oninput=$('#p2').oninput=pc;
+const rt=()=>{const a=+$('#r1').value,b=+$('#r2').value,c=+$('#r3').value;$('#ro').textContent=a?+(b*c/a).toFixed(4):'?'};
+['#r1','#r2','#r3'].forEach(i=>$(i).oninput=rt);
+const cnt=()=>{const t=$('#tx').value;$('#tc').textContent=`${t.trim()?t.trim().split(/\s+/).length:0} palabras · ${t.length} caracteres`};
+$('#tx').oninput=cnt;cnt();
+$$('[data-t]').forEach(b=>b.onclick=()=>{const x=$('#tx'),t=b.dataset.t;let v=x.value;
+ if(t==='up')v=v.toUpperCase();if(t==='lo')v=v.toLowerCase();
+ if(t==='ti')v=v.toLowerCase().replace(/(^|\s)\S/g,c=>c.toUpperCase());
+ if(t==='sp')v=v.replace(/[ \t]+/g,' ').trim();
+ if(t==='nl')v=v.replace(/\s*\n+\s*/g,' ').trim();
+ if(t==='cp'){navigator.clipboard.writeText(v);return}
+ x.value=v;cnt()});
+$('#pg').onclick=()=>{const n=Math.min(64,Math.max(6,+$('#pl').value||16)),ch='abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*?';
+ const a=crypto.getRandomValues(new Uint32Array(n));const p=[...a].map(x=>ch[x%ch.length]).join('');
+ $('#pw').textContent=p;navigator.clipboard.writeText(p)};
+
+// Accesos
+let links=get('links',[{n:'ChatGPT',u:'https://chatgpt.com'},{n:'Google Drive',u:'https://drive.google.com'},{n:'Canva',u:'https://canva.com'},{n:'Gmail',u:'https://mail.google.com'},{n:'YouTube',u:'https://youtube.com'}]);
+function renderLinks(){$('#ll').innerHTML=links.map((l,i)=>`<a href="${esc(l.u)}" target="_blank" rel="noopener" data-i="${i}">${esc(l.n)}</a>`).join('')}
+$('#ll').oncontextmenu=e=>{const i=e.target.dataset.i;if(i!==undefined){e.preventDefault();if(confirm('¿Eliminar '+links[i].n+'?')){links.splice(i,1);set('links',links);renderLinks()}}};
+$('#la').onclick=()=>{let u=$('#lu').value.trim(),n=$('#ln').value.trim();if(!u||!n)return;if(!/^https?:/.test(u))u='https://'+u;links.push({n,u});set('links',links);$('#ln').value=$('#lu').value='';renderLinks()};
+renderLinks();
+
+// Pomodoro
+let hist=get('pomo',[]),end=0,left=25*60,iv=null;
+const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+const draw=()=>{$('#pt').textContent=fmt(left);document.title=iv?fmt(left)+' · Mi Panel':'Mi Panel'};
+function tick(){left=Math.max(0,Math.round((end-Date.now())/1000));draw();if(!left){clearInterval(iv);iv=null;beep();finish(true)}}
+function beep(){try{const c=new AudioContext(),o=c.createOscillator();o.connect(c.destination);o.start();setTimeout(()=>o.stop(),600)}catch{}}
+$('#ps').onclick=()=>{if(iv)return;if(left<=0||!$('#pt').dataset.run)left=(+$('#pm').value||25)*60;$('#pt').dataset.run=1;end=Date.now()+left*1000;iv=setInterval(tick,500);tick()};
+$('#pp').onclick=()=>{if(iv){clearInterval(iv);iv=null;draw()}};
+$('#pm').oninput=()=>{if(!iv&&!$('#pt').dataset.run){left=(+$('#pm').value||25)*60;draw()}};
+function finish(done){const tot=(+$('#pm').value||25)*60,used=Math.round((tot-left)/60);
+ if($('#pt').dataset.run&&(done||used>0))hist.unshift({k:$('#pk').value||'(sin tarea)',m:done?tot/60:used,d:Date.now()});
+ set('pomo',hist);clearInterval(iv);iv=null;delete $('#pt').dataset.run;left=tot;draw();renderHist()}
+$('#pf').onclick=()=>finish(false);
+function renderHist(){hist=hist.slice(0,50);const today=hist.filter(h=>new Date(h.d).toDateString()===new Date().toDateString()).reduce((a,h)=>a+h.m,0);
+ $('#ph').innerHTML=`<small>Hoy: ${today} min</small>`+hist.slice(0,10).map(h=>`<div class="item"><span>${esc(h.k)}</span><small>${h.m} min · ${new Date(h.d).toLocaleDateString()}</small></div>`).join('')}
+renderHist();
+
+// Respaldo
+$('#ex').onclick=()=>{const d={notes,links,pomo:hist};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,1)],{type:'application/json'}));a.download='panel-respaldo.json';a.click()};
+$('#im').onchange=async e=>{try{const d=JSON.parse(await e.target.files[0].text());
+ if(d.notes){notes=d.notes;set('notes',notes)}if(d.links){links=d.links;set('links',links)}if(d.pomo){hist=d.pomo;set('pomo',hist)}
+ renderNotes();renderLinks();renderHist();alert('Importado')}catch{alert('Archivo no válido')}};
+
+// Barra de acciones rápidas
+const cmds={nota:['notas'],notas:['notas'],calculadora:['herr','#ci'],calc:['herr','#ci'],texto:['herr','#tx'],contador:['herr','#tx'],porcentaje:['herr','#p1'],regla:['herr','#r1'],contraseña:['herr','#pl'],password:['herr','#pl'],pomodoro:['pomo','#pk'],enfoque:['pomo','#pk'],sitios:['links'],accesos:['links'],respaldo:['datos'],exportar:['datos']};
+$('#q').oninput=()=>{const v=$('#q').value.trim().toLowerCase(),r=calc(v);
+ $('#qr').textContent=r!==null?'= '+r:(v&&(cmds[v]||links.find(l=>l.n.toLowerCase().startsWith(v)))?'↵ Enter para abrir':'')};
+$('#q').onkeydown=e=>{if(e.key!=='Enter')return;const v=$('#q').value.trim().toLowerCase();if(!v)return;
+ const r=calc(v);if(r!==null){navigator.clipboard.writeText(String(r));return}
+ if(cmds[v]){show(cmds[v][0]);if(cmds[v][1])$(cmds[v][1]).focus();$('#q').value='';$('#qr').textContent='';return}
+ const l=links.find(l=>l.n.toLowerCase().startsWith(v));
+ if(l){window.open(l.u,'_blank');$('#q').value='';$('#qr').textContent=''}
+ else{notes.unshift({id:Date.now(),t:$('#q').value.trim(),d:Date.now()});set('notes',notes);renderNotes();$('#q').value='';$('#qr').textContent='Guardado como nota'}};
+document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='k'){e.preventDefault();$('#q').focus()}});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script></body></html>
