@@ -31,9 +31,16 @@ small{color:var(--m)}.big{font-size:56px;font-weight:700;text-align:center;font-
 <div id="qr"></div>
 <nav id="nav"></nav>
 
-<section id="notas"><h3>Apuntes rápidos</h3>
-<textarea id="nt" placeholder="Escribe aquí… (Ctrl+Enter para guardar)"></textarea>
-<div class="row"><button class="btn pri" id="ns">Guardar nota</button><input id="nf" placeholder="Buscar en notas"><span id="nc"></span></div>
+<section id="notas"><h3>Carpetas</h3>
+<div class="row" id="fl"></div>
+<h3>Nota</h3>
+<input id="nti" placeholder="Título (opcional)" style="width:100%;margin-bottom:8px">
+<textarea id="nt" style="min-height:200px" placeholder="Escribe o dicta aquí (Win + H para dictar). Ctrl+Enter guarda."></textarea>
+<div class="row"><select id="nfo"></select><button class="btn pri" id="ns">Guardar</button><button class="btn" id="nn">Nueva</button><small id="es"></small></div>
+<h3>Buscar y enviar a Claude</h3>
+<div class="row"><input id="nf" placeholder="Buscar en esta carpeta"><span id="nc"></span></div>
+<div class="row"><button class="btn" id="nk">📋 Copiar para Claude</button><button class="btn" id="nd">⬇ Descargar .md</button></div>
+<small id="nm"></small>
 <div id="nl"></div></section>
 
 <section id="herr"><h3>Calculadora</h3>
@@ -72,22 +79,35 @@ const tabs={notas:'📝 Notas',herr:'🧮 Herramientas',links:'🌐 Accesos',pom
 for(const k in tabs){const b=document.createElement('button');b.textContent=tabs[k];b.dataset.k=k;b.onclick=()=>show(k);$('#nav').append(b)}
 function show(k){$$('section').forEach(s=>s.classList.toggle('on',s.id===k));$$('nav button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));set('tab',k)}
 show(get('tab','notas'));
-const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const calc=e=>{e=e.replace(/[x×]/g,'*').replace(/÷/g,'/').replace(/\^/g,'**').replace(/,/g,'.');
  if(!/^[\d+\-*/().\s%]+$/.test(e)||!/\d/.test(e)||!/[+\-*/%]/.test(e))return null;
  try{const r=Function('"use strict";return('+e.replace(/(\d+(?:\.\d+)?)%/g,'($1/100)')+')')();return Number.isFinite(r)?+r.toFixed(10):null}catch{return null}};
 
 // Notas
-let notes=get('notes',[]);
-function renderNotes(){const f=$('#nf').value.toLowerCase();
- const l=notes.filter(n=>n.t.toLowerCase().includes(f));
- $('#nc').innerHTML='<small>'+l.length+' nota(s)</small>';
- $('#nl').innerHTML=l.map(n=>`<div class="item"><pre>${esc(n.t)}</pre><div><small>${new Date(n.d).toLocaleString()}</small><br><button class="btn" data-c="${n.id}">Copiar</button> <button class="btn" data-d="${n.id}">✕</button></div></div>`).join('')}
-function saveNote(){const t=$('#nt').value.trim();if(!t)return;notes.unshift({id:Date.now(),t,d:Date.now()});set('notes',notes);$('#nt').value='';renderNotes()}
-$('#ns').onclick=saveNote;$('#nt').onkeydown=e=>{if(e.ctrlKey&&e.key==='Enter')saveNote()};$('#nf').oninput=renderNotes;
-$('#nl').onclick=e=>{const d=e.target.dataset.d,c=e.target.dataset.c;
- if(d){notes=notes.filter(n=>n.id!=d);set('notes',notes);renderNotes()}
- if(c)navigator.clipboard.writeText(notes.find(n=>n.id==c).t)};
+let notes=get('notes',[]),folders=get('folders',['General']),cur='Todas',eid=null;
+const fo=n=>n.f||'General',allF=()=>[...new Set([...folders,...notes.map(fo)])];
+const list=()=>{const f=$('#nf').value.toLowerCase();return notes.filter(n=>(cur==='Todas'||fo(n)===cur)&&((n.ti||'')+' '+n.t).toLowerCase().includes(f))};
+const mdOf=l=>`# Carpeta: ${cur}\n\n`+l.map(n=>`## ${n.ti||'Sin título'} (${fo(n)} · ${new Date(n.d).toLocaleDateString()})\n\n${n.t}`).join('\n\n---\n\n');
+function renderNotes(){const fs=allF(),prev=$('#nfo').value;
+ $('#fl').innerHTML=['Todas',...fs].map(f=>`<button class="btn${f===cur?' pri':''}" data-f="${esc(f)}">${esc(f)}</button>`).join('')+'<button class="btn" id="fa">+ Carpeta</button>';
+ $('#nfo').innerHTML=fs.map(f=>`<option>${esc(f)}</option>`).join('');
+ $('#nfo').value=fs.includes(prev)?prev:(cur==='Todas'?'General':cur);
+ const l=list();$('#nc').innerHTML='<small>'+l.length+' nota(s)</small>';
+ $('#nl').innerHTML=l.map(n=>`<div class="item"><pre><b>${esc(n.ti||'')}</b>\n${esc(n.t.slice(0,300))}${n.t.length>300?'…':''}</pre><div><small>${esc(fo(n))} · ${new Date(n.d).toLocaleDateString()}</small><br><button class="btn" data-e="${n.id}">Editar</button> <button class="btn" data-d="${n.id}">✕</button></div></div>`).join('')}
+function clearEd(){eid=null;$('#nt').value=$('#nti').value='';$('#es').textContent=''}
+function saveNote(){const t=$('#nt').value.trim();if(!t)return;const ti=$('#nti').value.trim(),f=$('#nfo').value;
+ if(eid){Object.assign(notes.find(x=>x.id===eid),{t,ti,f,d:Date.now()})}else{eid=Date.now();notes.unshift({id:eid,t,ti,f,d:Date.now()})}
+ set('notes',notes);$('#es').textContent='Guardado ✓ (editando)';renderNotes()}
+$('#ns').onclick=saveNote;$('#nn').onclick=clearEd;
+$('#nt').onkeydown=e=>{if(e.ctrlKey&&e.key==='Enter')saveNote()};$('#nf').oninput=renderNotes;
+$('#fl').onclick=e=>{if(e.target.dataset.f){cur=e.target.dataset.f;renderNotes()}
+ if(e.target.id==='fa'){const n=(prompt('Nombre de la carpeta')||'').trim();if(n){if(!folders.includes(n))folders.push(n);set('folders',folders);cur=n;renderNotes()}}};
+$('#nl').onclick=e=>{const d=e.target.dataset.d,x=e.target.dataset.e;
+ if(d&&confirm('¿Borrar esta nota?')){notes=notes.filter(n=>n.id!=d);set('notes',notes);if(eid==d)clearEd();renderNotes()}
+ if(x){const n=notes.find(n=>n.id==x);eid=n.id;$('#nti').value=n.ti||'';$('#nt').value=n.t;$('#nfo').value=fo(n);$('#es').textContent='Editando…';$('#nt').focus()}};
+$('#nk').onclick=()=>{const l=list();if(!l.length)return;navigator.clipboard.writeText(mdOf(l));$('#nm').textContent='Copiado ('+l.length+' notas). Pégalo en el chat con Claude y escribe: hazlo'};
+$('#nd').onclick=()=>{const l=list();if(!l.length)return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([mdOf(l)],{type:'text/markdown'}));a.download=(cur==='Todas'?'notas':cur)+'.md';a.click()};
 renderNotes();
 
 // Herramientas
@@ -134,9 +154,9 @@ function renderHist(){hist=hist.slice(0,50);const today=hist.filter(h=>new Date(
 renderHist();
 
 // Respaldo
-$('#ex').onclick=()=>{const d={notes,links,pomo:hist};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,1)],{type:'application/json'}));a.download='panel-respaldo.json';a.click()};
+$('#ex').onclick=()=>{const d={notes,folders,links,pomo:hist};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,1)],{type:'application/json'}));a.download='panel-respaldo.json';a.click()};
 $('#im').onchange=async e=>{try{const d=JSON.parse(await e.target.files[0].text());
- if(d.notes){notes=d.notes;set('notes',notes)}if(d.links){links=d.links;set('links',links)}if(d.pomo){hist=d.pomo;set('pomo',hist)}
+ if(d.notes){notes=d.notes;set('notes',notes)}if(d.folders){folders=d.folders;set('folders',folders)}if(d.links){links=d.links;set('links',links)}if(d.pomo){hist=d.pomo;set('pomo',hist)}
  renderNotes();renderLinks();renderHist();alert('Importado')}catch{alert('Archivo no válido')}};
 
 // Barra de acciones rápidas
